@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JioHotstar - Premium Streaming</title>
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --bg-color: #0f1014;
+            --card-bg: #1a1d24;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent-color: #1f80e0; /* Jio Blue */
+            --accent-hover: #166bb8;
+            --nav-bg: rgba(15, 16, 20, 0.98);
+            --transition: all 0.3s ease;
+            --border-radius: 6px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        button, select { cursor: pointer; border: none; outline: none; font-family: inherit; }
+
+        /* --- NAVIGATION --- */
+        header {
+            position: fixed; top: 0; width: 100%; height: 70px;
+            background: var(--nav-bg); display: flex; align-items: center; justify-content: space-between;
+            padding: 0 4%; z-index: 1000; backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo { font-size: 1.5rem; font-weight: 900; color: #ffffff; letter-spacing: -0.5px; }
+        .logo span { color: #1f80e0; }
+        
+        .nav-links { display: flex; gap: 25px; }
+        .nav-links li a {
+            font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;
+            transition: var(--transition); text-transform: uppercase;
+        }
+        .nav-links li a:hover, .nav-links li a.active { color: #1f80e0; }
+
+        .controls-container { display: flex; align-items: center; gap: 15px; }
+        
+        .lang-select {
+            background: rgba(255,255,255,0.1); color: white; padding: 8px 10px; border-radius: 4px;
+            font-size: 0.85rem; border: 1px solid transparent; outline: none;
+        }
+        .lang-select:focus { border-color: #1f80e0; }
+
+        .search-input {
+            background: rgba(255,255,255,0.1); border: 1px solid transparent;
+            color: white; padding: 8px 15px; border-radius: 4px; width: 200px;
+            transition: var(--transition);
+        }
+        .search-input:focus { background: #000; border-color: #1f80e0; width: 250px; }
+        .user-avatar {
+            width: 32px; height: 32px; background: #1f80e0; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;
+        }
+
+        /* --- HERO SLIDER (Carousel) --- */
+        
+           .hero {
+  position: relative;
+  margin-top: 70px;
+ height: calc(100vh - 70px);       /* Perfect OTT height */
+  width: 100%;
+  background-size: 110% auto;
+  background-position: center center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+}
+
+        
+        .hero-slide {
+            position: absolute; top: 5; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            opacity: 0; transition: opacity 1s ease-in-out;
+            z-index: 1;
+        }
+        .hero-slide.active { opacity: 1; z-index: 2; }
+        .hero-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 10%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.8) 90%);
+            z-index: 3;
+        }
+        
+        .hero-content {
+            position: relative; z-index: 4; padding: 0 4% 60px 4%; max-width: 600px;
+            transform: translateY(20px); opacity: 0; transition: all 0.8s ease 0.3s;
+        }
+        .hero-slide.active .hero-content { transform: translateY(0); opacity: 1; }
+
+        .hero-title { font-size: 3.5rem; font-weight: 800; margin-bottom: 15px; line-height: 1.1; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .hero-meta { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; font-size: 0.95rem; color: #ddd; }
+        .badge { border: 1px solid rgba(255,255,255,0.4); padding: 2px 6px; border-radius: 3px; font-size: 0.75rem; font-weight: bold; }
+        .hero-desc { color: #ccc; margin-bottom: 25px; line-height: 1.5; font-size: 1rem; max-width: 500px; }
+        .btn-primary {
+            background-color: #1f80e0; color: white; padding: 12px 28px; border-radius: 4px;
+            font-size: 1rem; font-weight: 700; display: inline-flex; align-items: center; gap: 10px;
+            transition: var(--transition);
+        }
+        .btn-primary:hover { background-color: #166bb8; transform: translateY(-2px); }
+
+        /* Slider Controls */
+        .slider-controls {
+            position: absolute; bottom: 80px; right: 4%; z-index: 10; display: flex; gap: 10px;
+        }
+        .slider-btn {
+            background: rgba(255,255,255,0.2); color: white; width: 40px; height: 40px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; transition: 0.3s;
+        }
+        .slider-btn:hover { background: #1f80e0; }
+
+        /* --- CONTENT GRID --- */
+        .section-container { padding: 20px 4% 40px 4%; margin-bottom: 10px; }
+        .section-title { font-size: 1.5rem; margin-bottom: 20px; color: white; font-weight: 700; border-left: 4px solid #1f80e0; padding-left: 12px; }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+            padding-bottom: 20px;
+        }
+
+        /* --- CARDS --- */
+        .card {
+            background: var(--card-bg); border-radius: var(--border-radius);
+            overflow: hidden; transition: var(--transition); cursor: pointer; position: relative;
+            display: flex; flex-direction: column;
+        }
+        .card:hover { transform: scale(1.03); z-index: 10; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .card-poster { width: 100%; height: 240px; object-fit: cover; background: #2a2e38; } /* Added bg color for loading state */
+        .card-info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; line-height: 1.3; }
+        .card-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); margin-top: auto; }
+        .rating { color: #46d369; font-weight: 700; }
+        .lang-tag { font-size: 0.7rem; background: #333; padding: 2px 4px; border-radius: 2px; }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2000; display: none;
+            justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;
+            background-color: #000;
+        }
+        /* Dynamic Backdrop */
+        .modal-backdrop {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            opacity: 0.3; filter: blur(10px); z-index: -1;
+            transition: background-image 0.5s ease;
+        }
+
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content {
+            background: rgba(20, 20, 25, 0.95); width: 90%; max-width: 1000px;
+            border-radius: 12px; overflow: hidden; position: relative; z-index: 5;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column;
+        }
+        .close-btn {
+            position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.6);
+            color: white; width: 36px; height: 36px; border-radius: 50%;
+            font-size: 1.5rem; display: flex; align-items: center; justify-content: center; z-index: 10;
+        }
+        .close-btn:hover { background: #1f80e0; }
+        .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; background: black; }
+        .video-wrapper iframe, .video-wrapper video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        .modal-details { padding: 30px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .modal-title { font-size: 2rem; margin-bottom: 5px; line-height: 1.1; }
+        .watch-controls { display: flex; gap: 10px; align-items: center; }
+        .modal-lang-select {
+            background: #333; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.9rem;
+        }
+        .modal-meta { display: flex; gap: 15px; margin-bottom: 20px; color: var(--text-secondary); font-size: 0.9rem; }
+        .modal-desc { line-height: 1.6; color: #ddd; font-size: 1rem; max-width: 800px; }
+
+        /* --- FOOTER --- */
+        footer { background: #050505; padding: 40px 4%; margin-top: 50px; border-top: 1px solid #222; color: #777; font-size: 0.85rem; }
+        .footer-content { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px; }
+        .footer-links a { color: #999; margin-right: 20px; transition: 0.2s; }
+        .footer-links a:hover { color: white; }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero-title { font-size: 2.2rem; }
+            .content-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+            .modal-content { width: 95%; }
+            .slider-controls { bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Jio<span>Hotstar</span></div>
+        <ul class="nav-links">
+            <li><a href="#" class="active" onclick="filterCategory('all')">Home</a></li>
+            <li><a href="#movies" onclick="filterCategory('movies')">Movies</a></li>
+            <li><a href="#sports" onclick="filterCategory('sports')">Sports</a></li>
+            <li><a href="#tvshows" onclick="filterCategory('tvshows')">TV Shows</a></li>
+            <li><a href="#kids" onclick="filterCategory('kids')">Kids</a></li>
+        </ul>
+        <div class="controls-container">
+            <select class="lang-select" id="globalLangFilter" onchange="filterByLanguage(this.value)">
+                <option value="All">All Languages</option>
+                <option value="Hindi">Hindi</option>
+                <option value="English">English</option>
+                <option value="Telugu">Telugu</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Malayalam">Malayalam</option>
+                <option value="Kannada">Kannada</option>
+                <option value="Marathi">Marathi</option>
+                <option value="Bengali">Bengali</option>
+            </select>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search...">
+            <div class="user-avatar">J</div>
+        </div>
+    </header>
+
+    <!-- Hero Slider -->
+    <div class="hero" id="heroSection">
+        <!-- Slides injected via JS -->
+        <div class="slider-controls">
+            <button class="slider-btn" onclick="changeSlide(-1)">&#10094;</button>
+            <button class="slider-btn" onclick="changeSlide(1)">&#10095;</button>
+        </div>
+    </div>
+
+    <main id="mainContainer"></main>
+
+    <div class="modal-overlay" id="videoModal">
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <div class="video-wrapper" id="videoContainer"></div>
+            <div class="modal-details">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modalTitle">Title</h2>
+                    <div class="watch-controls">
+                        <label style="color:#aaa; font-size:0.8rem;">Audio:</label>
+                        <select class="modal-lang-select">
+                            <option>Original Audio</option>
+                            <option>Hindi Dubbed</option>
+                            <option>English</option>
+                            <option>Telugu</option>
+                        </select>
+                        <button class="btn-primary" style="padding: 5px 15px; font-size: 0.8rem;">Subscribe</button>
+                    </div>
+                </div>
+                <div class="modal-meta">
+                    <span id="modalGenre">Genre</span> | <span id="modalRating">Rating</span> | <span id="modalLang">Language</span>
+                </div>
+                <p class="modal-desc" id="modalDesc">Description.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div>
+                <h3 style="color:white; margin-bottom:10px;">JioHotstar</h3>
+                <p>Stories, Sports, and more.</p>
+            </div>
+            <div class="footer-links">
+                <a href="#">About</a> <a href="#">Privacy</a> <a href="#">Terms</a> <a href="#">Help</a>
+            </div>
+        </div>
+        <div style="margin-top:20px; text-align:center;">&copy; 2024 JioHotstar Showcase</div>
+    </footer>
+
+    <script>
+        /* --- FALLBACK IMAGE --- */
+        // This ensures if an image breaks, it loads a themed placeholder instead of looking empty
+        const FALLBACK_IMAGE = "https://via.placeholder.com/200x300/1a1d24/ffffff?text=Image+Not+Available";
+
+        /* --- DATA GENERATION (Verified TMDB & Wikimedia URLs) --- */
+        
+        const movies = [
+             { id: 115, title: "Baahubali 2", cat: "movies", genre: "Action", lang: "Telugu", poster: "https://d229kpbsb5jevy.cloudfront.net/sony4/0/bahubali_2_12dec_landscape_thumb.jpg", desc: "The conclusion to the epic saga.", rating: "9.3" },
+            { id: 102, title: "Kalki 2898 AD", cat: "movies", genre: "Sci-Fi", lang: "Telugu", poster: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR-sNiWmHfqYrW3xVnjjuez8pkG5xrHPZWJA&s", desc: "Dystopian future epic.", rating: "8.5" },
+             { id: 114, title: "3 Idiots", cat: "movies", genre: "Comedy", lang: "Hindi", poster: "https://www.acmodasi.in/amdb/images/movie/8/n/3-idiots-2009-75632.jpg", desc: "Friends search for their lost companion.", rating: "9.1" },
+              { id: 110, title: "2018", cat: "movies", genre: "Drama", lang: "Malayalam", poster: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyZmaDXnpt5aA0oWRg-r1XF5bUei4rFg4aXQ&s", desc: "Based on the Kerala floods.", rating: "8.9" },
+              { id: 117, title: "12th Fail", cat: "movies", genre: "Biography", lang: "Hindi", poster: "https://img.airtel.tv/unsafe/fit-in/500x0/filters:format(webp)/https://xstreamcp-assets-msp.streamready.in/assets/HOTSTAR_DTH/MOVIE/690de3e84d854e0e7600479d/images/PORTRAIT/1640217-v-99dd2cb43cd4?o=production", desc: "Real-life story of Manoj Kumar Sharma.", rating: "9.4" },
+            { id: 103, title: "Jawan", cat: "movies", genre: "Action", lang: "Hindi", poster: "https://preview.redd.it/new-poster-for-jawan-starring-shah-rukh-khan-v0-fe7abaos3xib1.jpg?width=1080&crop=smart&auto=webp&s=aea6b559ee50b158b0f058996c959f1d1688436e", desc: "High-octane action thriller.", rating: "8.7" },
+            { id: 104, title: "Animal", cat: "movies", genre: "Crime", lang: "Hindi", poster: "https://m.media-amazon.com/images/I/61OmlO9stnL._AC_UF894,1000_QL80_.jpg", desc: "A son undergoes a transformation after his father is shot.", rating: "8.2" },
+            { id: 105, title: "Kantara", cat: "movies", genre: "Mythology", lang: "Kannada", poster: "https://m.media-amazon.com/images/M/MV5BNGY2NTc0NjctODU1YS00NjJhLWFmYjEtZjQ1Yzc1YmVhMjAwXkEyXkFqcGc@._V1_.jpg", desc: "Spiritual struggle between man and nature.", rating: "9.1" },
+            { id: 106, title: "KGF Chapter 2", cat: "movies", genre: "Action", lang: "Kannada", poster: "https://lh6.googleusercontent.com/proxy/v3rsR4xqWxmVHli2HDt9CIuMC5Hx96zWXts3__k0CWxKG7ySEnHUYCf0qIraBCb1HujojqGvaq67CL_BxSOMe0c-spe42fmmC4dlIpMW16qFD3rxSP7z9Gw2t38", desc: "Rocky's reign as the king of the gold field.", rating: "8.8" },
+            { id: 107, title: "Leo", cat: "movies", genre: "Thriller", lang: "Tamil", poster: "https://upload.wikimedia.org/wikipedia/en/7/75/Leo_%282023_Indian_film%29.jpg", desc: "A gangster's past catches up.", rating: "8.2" },
+            { id: 108, title: "Vikram", cat: "movies", genre: "Action", lang: "Tamil", poster: "https://m.media-amazon.com/images/M/MV5BNDEyMWQ0ZDktNTY0MC00YWRkLWFlMjQtMDUxMjRlMDhmMmRlXkEyXkFqcGc@._V1_.jpg", desc: "A special agent investigates a series of murders.", rating: "9.2" },
+            { id: 109, title: "Sita Ramam", cat: "movies", genre: "Romance", lang: "Telugu", poster: "https://wallpaperaccess.com/full/8407020.jpg", desc: "An orphan soldier's life changes after receiving a letter.", rating: "9.0" },
+            { id: 111, title: "Premalu", cat: "movies", genre: "Comedy", lang: "Malayalam", poster: "https://i.ytimg.com/vi/T5GemRLhbEE/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLANfD_Po_IVdneFsYv_kNCqRtTbSQ", desc: "Hilarious romantic comedy.", rating: "8.8" },
+            { id: 112, title: "Pathaan", cat: "movies", genre: "Action", lang: "Hindi", poster: "https://stat4.bollywoodhungama.in/wp-content/uploads/2020/08/Pathaan-13.jpg", desc: "An Indian spy takes on the leader of a group of mercenaries.", rating: "8.1" },
+            { id: 113, title: "Dangal", cat: "movies", genre: "Biography", lang: "Hindi", poster: "https://m.media-amazon.com/images/M/MV5BMTQ4MzQzMzM2Nl5BMl5BanBnXkFtZTgwMTQ1NzU3MDI@._V1_.jpg", desc: "Former wrestler trains daughters.", rating: "9.2" },
+            { id: 116, title: "Gadar 2", cat: "movies", genre: "Action", lang: "Hindi", poster: "https://akamaividz2.zee5.com/image/upload/w_1170,h_658,c_scale/resources/0-0-1z5437988/list/rsz1170x658withlogo0b5fe11f78f1446da5f97432dea974337738cfff57b2449693511b4e1c1ca2b6.jpg", desc: "A sequel to the blockbuster Gadar.", rating: "7.5" },
+            { id: 118, title: "Sam Bahadur", cat: "movies", genre: "Biography", lang: "Hindi", poster: "https://www.acmodasi.in/amdb/images/movie/d/k/sam-bahadur-2023-RQhoC9.jpg", desc: "Story of India's greatest war hero.", rating: "8.5" },
+            { id: 119, title: "Oppenheimer", cat: "movies", genre: "Biography", lang: "English", poster: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT397-lW2GnU8IzqDoODw-AS2mI2I8qI7pKVA&s", desc: "The story of J. Robert Oppenheimer.", rating: "9.0" },
+            { id: 120, title: "Avatar 2", cat: "movies", genre: "Sci-Fi", lang: "English", poster: "https://i.pinimg.com/564x/76/2f/fa/762ffa968a2f4ab48b9a915cebe58b85.jpg", desc: "Jake Sully and family on Pandora.", rating: "8.9" },
+            { id: 121, title: "Avengers: Endgame", cat: "movies", genre: "Action", lang: "English", poster: "https://cdn.marvel.com/content/2x/avengersendgame_lob_mas_mob_01.jpg", desc: "The final stand against Thanos.", rating: "9.4" },
+            { id: 122, title: "Spider-Man: No Way Home", cat: "movies", genre: "Action", lang: "English", poster: "https://upload.wikimedia.org/wikipedia/en/thumb/7/70/Spider-Man_No_Way_Home_%E2%80%93_The_More_Fun_Stuff_Version_poster.jpeg/250px-Spider-Man_No_Way_Home_%E2%80%93_The_More_Fun_Stuff_Version_poster.jpeg", desc: "Multiverse chaos for Peter Parker.", rating: "9.0" },
+            { id: 123, title: "Interstellar", cat: "movies", genre: "Sci-Fi", lang: "English", poster: "https://wallpapers.oneindia.com/ph-1024x768/2014/11/interstellar-wallpaper_141510110640.jpg", desc: "Explorers travel through a wormhole.", rating: "9.3" },
+            { id: 124, title: "The Dark Knight", cat: "movies", genre: "Action", lang: "English", poster: "https://m.media-amazon.com/images/I/71rGQrF1flL._AC_UF894,1000_QL80_.jpg", desc: "Batman faces the Joker.", rating: "9.5" },
+            { id: 125, title: "Barbie", cat: "movies", genre: "Comedy", lang: "English", poster: "https://image.tmdb.org/t/p/original/dekMkQf0kqAmztUca9lX5e5Pjbp.jpg", desc: "Barbie ventures into the real world.", rating: "7.8" },
+            { id: 126, title: "Sairat", cat: "movies", genre: "Romance", lang: "Marathi", poster: "https://m.media-amazon.com/images/M/MV5BNTJmZWM3NWItMWE0MS00NjI1LWI3YjAtM2EzNmY5YmNiYzNjXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg", desc: "A love story that faces societal hurdles.", rating: "8.8" },
+            { id: 127, title: "Har Har Mahadev", cat: "movies", genre: "Action", lang: "Marathi", poster: "https://img.airtel.tv/unsafe/fit-in/1600x0/filters:format(webp)/https://xstreamcp-assets-msp.streamready.in/assets/ZEEFIVE/MOVIE/66ff62e0966a8617a1539cf5/images/LANDSCAPE_169/rszImageTitle82f4a207efe54830a9b4ef3780909fcf.jpg?o=production", desc: "Historical war drama.", rating: "8.0" },
+            { id: 128, title: "Chander Pahar", cat: "movies", genre: "Adventure", lang: "Bengali", poster: "https://lh3.googleusercontent.com/proxy/M1SC9zydsISwVoSYbQiPAn1H79Be2qFFktywLjQJqtcPq0aUwZ0hlJ_F1TNVdCy6_8YVGA4bAxcz0qP183TNz_LGT1MBJN9JPQ_k-LZKj31nbsXfnbpiGEk", desc: "A young man's African adventure.", rating: "8.3" },
+            { id: 129, title: "Kolkata Sunday", cat: "movies", genre: "Drama", lang: "Bengali", poster: "https://www.zee5.com/global/blog/wp-content/uploads/2026/01/1920x1080list69e2b3de96df46898c6622f1e67edaf248ff6acddbb347e68cbef2b02c56bb0e.webp", desc: "Stories set in Kolkata.", rating: "7.9" },
+            { id: 130, title: "Rocky Aur Rani", cat: "movies", genre: "Romance", lang: "Hindi", poster: "https://m.media-amazon.com/images/M/MV5BYTE2YTZlODgtMTRiNS00YjZkLTljN2YtNTM3ZTQ2MzcwZGNiXkEyXkFqcGc@._V1_.jpg", desc: "A couple swaps families to win them over.", rating: "7.0" },
+            { id: 131, title: "Tu Jhoothi Main Makkaar", cat: "movies", genre: "Romance", lang: "Hindi", poster: "https://www.whoa.in/download/tu-jhoothi-main-makkaar-movie-best-images", desc: "Two commitment-phobes fall in love.", rating: "7.2" },
+            { id: 132, title: "Bhool Bhulaiyaa 3", cat: "movies", genre: "Horror", lang: "Hindi", poster: "https://m.media-amazon.com/images/M/MV5BOTk1MDQxZTQtMTI0OC00ZTc5LTgxNjgtNzhmY2M4ZWY0OTgyXkEyXkFqcGc@._V1_.jpg", desc: "The horror comedy returns.", rating: "TBA" },
+            { id: 133, title: "Stree 2", cat: "movies", genre: "Horror", lang: "Hindi", poster: "https://m.media-amazon.com/images/M/MV5BNWIzZjVmN2EtNGEyMy00MzVlLWIxMmItZjYzZGVjMzQ3N2VkXkEyXkFqcGc@._V1_.jpg", desc: "The sequel to the hit horror comedy.", rating: "TBA" },
+            { id: 134, title: "Pushpa 2", cat: "movies", genre: "Action", lang: "Telugu", poster: "https://m.media-amazon.com/images/M/MV5BZjllNTdiM2QtYjQ0Ni00ZGM1LWFlYmUtNWY0YjMzYWIxOTYxXkEyXkFqcGc@._V1_.jpg", desc: "The Rule continues.", rating: "TBA" },
+            { id: 135, title: "Devara Part 1", cat: "movies", genre: "Action", lang: "Telugu", poster: "https://m.media-amazon.com/images/M/MV5BNWY4NDgyN2QtNDRkZS00OGRjLWFhN2UtODc3Mzk2ZjQ0ZjhkXkEyXkFqcGc@._V1_.jpg", desc: "A high-octane coastal action drama.", rating: "TBA" },
+            { id: 136, title: "Good Night", cat: "movies", genre: "Comedy", lang: "Tamil", poster: "https://m.media-amazon.com/images/M/MV5BMTI2NTFhZjUtMjM1Mi00ZGU0LWI3MTQtNjU0MzYzNGFhODYwXkEyXkFqcGc@._V1_.jpg", desc: "A man with a snoring problem.", rating: "8.1" },
+            { id: 137, title: "Jai Bhim", cat: "movies", genre: "Drama", lang: "Tamil", poster: "https://resizing.flixster.com/-XZAfHZM39UwaGJIFWKAE8fS0ak=/v3/t/assets/p20749753_p_v10_aa.jpg", desc: "A gripping legal drama.", rating: "9.5" },
+            { id: 138, title: "Soorarai Pottru", cat: "movies", genre: "Drama", lang: "Tamil", poster: "https://wallpapers.com/images/hd/soorarai-pottru-suriya-open-arms-title-card-flme0spd94sne2j2.jpg", desc: "Inspired by the life of Air Deccan founder.", rating: "9.3" },
+            { id: 139, title: "Minnal Murali", cat: "movies", genre: "Superhero", lang: "Malayalam", poster: "https://i.pinimg.com/736x/49/aa/b3/49aab33b72bc98add885f4dc50d7e4e4.jpg", desc: "A tailor gains superpowers.", rating: "8.9" },
+            { id: 140, title: "Kumbalangi Nights", cat: "movies", genre: "Drama", lang: "Malayalam", poster: "https://m.media-amazon.com/images/M/MV5BOTQxNzcyOTEtNDViNy00MGQ3LTliMjktYmVjOGE4NTM4ODJiXkEyXkFqcGc@._V1_.jpg", desc: "Life in a fishing village.", rating: "9.0" }
+        ];
+
+        const sports = [
+  { id: 201, title: "IPL 2024 Final", cat: "sports", genre: "Cricket", lang: "English", poster: "https://upload.wikimedia.org/wikipedia/en/1/19/TATA_IPL_2024_Logo.png", desc: "The grand finale of the Indian Premier League.", rating: "Live" },
+  { id: 202, title: "IND vs AUS", cat: "sports", genre: "Cricket", lang: "Hindi", poster: "https://img1.hscicdn.com/image/upload/f_auto,t_ds_w_960,q_50/lsci/db/PICTURES/CMS/346500/346589.jpg", desc: "High voltage India vs Australia clash.", rating: "Live" },
+  { id: 203, title: "IND vs PAK", cat: "sports", genre: "Cricket", lang: "Hindi", poster: "https://media.istockphoto.com/id/1575785574/vector/india-vs-pakistan-exciting-cricket-match-concept-background-with-glowing-lights-and-flags-of.jpg?s=612x612&w=0&k=20&c=n6dnnG0ZbTIbq7E9yR7Yvjtxsne33BzsUD17usO7fN8=", desc: "The ultimate rivalry match.", rating: "Upcoming" },
+  { id: 204, title: "IPL CSK vs MI", cat: "sports", genre: "Cricket", lang: "English", poster: "https://i.pinimg.com/736x/8b/4c/a1/8b4ca19fbb0919b3044794e02aca31aa.jpg", desc: "Chennai Super Kings vs Mumbai Indians.", rating: "Highlight" },
+  { id: 205, title: "IPL RCB vs KKR", cat: "sports", genre: "Cricket", lang: "English", poster: "https://images.indianexpress.com/2024/03/KKR-vs-RCB.jpg", desc: "Royal Challengers vs Kolkata Knight Riders.", rating: "Highlight" },
+  { id: 206, title: "T20 World Cup", cat: "sports", genre: "Cricket", lang: "English", poster: "https://www.shutterstock.com/image-vector/t20-cricket-world-cup-banner-260nw-2215455799.jpg", desc: "Global T20 Championship.", rating: "Live" },
+  { id: 207, title: "Asia Cup 2024", cat: "sports", genre: "Cricket", lang: "Hindi", poster: "https://images.mykhel.com/img/2024/11/acc-u19-asia-cup-2024-1731071715.jpeg", desc: "Premier ODI tournament in Asia.", rating: "Upcoming" },
+  { id: 208, title: "The Ashes", cat: "sports", genre: "Cricket", lang: "English", poster: "https://i.pinimg.com/736x/1f/28/e9/1f28e9a409d5bac5dee96767e2c74882.jpg", desc: "England vs Australia Test series.", rating: "Upcoming" },
+  { id: 209, title: "ISL Mumbai City", cat: "sports", genre: "Football", lang: "English", poster: "https://www.indiansuperleague.com/static-assets/images/club/overview/506.png?v=103.21", desc: "Indian Super League Action.", rating: "Live" },
+  { id: 210, title: "ISL ATKMB", cat: "sports", genre: "Football", lang: "Bengali", poster: "https://img.olympics.com/images/image/private/t_s_pog_staticContent_hero_lg_2x/f_auto/primary/kaw08qyrdm5mwoj5houo", desc: "ATK Mohun Bagan match.", rating: "Live" },
+  { id: 211, title: "ISL Kerala Blasters", cat: "sports", genre: "Football", lang: "Malayalam", poster: "https://i.pinimg.com/736x/f0/53/16/f053168e2a8060b0f93df8588d255a42.jpg", desc: "Kerala Blasters in ISL action.", rating: "Highlight" },
+  { id: 212, title: "F1 Monaco GP", cat: "sports", genre: "Racing", lang: "English", poster: "https://thumbs.dreamstime.com/b/dynamic-poster-monaco-grand-prix-showcasing-formula-one-race-car-vibrant-colorful-streaks-scenic-backdrop-320274437.jpg", desc: "Formula 1 Monaco Grand Prix.", rating: "Live" },
+  { id: 213, title: "Premier League", cat: "sports", genre: "Football", lang: "English", poster: "https://media.gettyimages.com/id/2216998227/photo/liverpool-england-virgil-van-dijk-of-liverpool-lifts-the-premier-league-trophy-as-liverpool.jpg?s=612x612&w=gi&k=20&c=9sG4PR0foItrU8sw26uwoFgIZLly3SwrIQBs-Y8kwgY=", desc: "Top tier English Football.", rating: "Live" },
+  { id: 214, title: "La Liga", cat: "sports", genre: "Football", lang: "Spanish", poster: "https://images.supersport.com/media/4w2f2kkg/la-liga.jpeg?width=1920&quality=90&format=webp", desc: "Spanish Football League.", rating: "Live" },
+  { id: 215, title: "NBA Finals", cat: "sports", genre: "Basketball", lang: "English", poster: "https://www.shutterstock.com/image-photo/outdoor-photo-nba-finals-match-260nw-2639292789.jpg", desc: "The NBA Championship Finals.", rating: "Live" },
+  { id: 216, title: "NBA Lakers", cat: "sports", genre: "Basketball", lang: "English", poster: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLBmszIgc0liAPwuEzsH_0S3zDxvZSoOSDUw&s", desc: "Los Angeles Lakers Game.", rating: "Highlight" },
+  { id: 217, title: "Wimbledon", cat: "sports", genre: "Tennis", lang: "English", poster: "https://images2.alphacoders.com/132/thumb-1920-1321508.jpeg", desc: "The Championships, Wimbledon.", rating: "Upcoming" },
+  { id: 218, title: "Pro Kabaddi", cat: "sports", genre: "Kabaddi", lang: "Hindi", poster: "https://www.prokabaddi.com/static-assets/waf-images/05/ac/81/16-9/72zONHwRQk.png?v=2.39&w=600", desc: "Professional Kabaddi League action.", rating: "Live" },
+  { id: 219, title: "Olympics 2024", cat: "sports", genre: "Multi-sport", lang: "English", poster: "https://img.olympics.com/images/image/private/t_s_pog_staticContent_hero_xl_2x/f_auto/primary/ojzqkrhqkgjzdvuyh1om", desc: "Paris Olympic Games.", rating: "Upcoming" }
+];
+
+
+        const tvshows = [
+            { id: 301, title: "The Night Manager", cat: "tvshows", genre: "Thriller", lang: "Hindi", poster: "https://upload.wikimedia.org/wikipedia/en/4/4c/The_Night_Manager_%28Indian_TV_series%29.jpg", backdrop: "https://image.tmdb.org/t/p/original/5SV7aYwi8XrMl6MfFtPOHY8yRr.jpg", desc: "Espionage thriller.", rating: "9.0" },
+            { id: 302, title: "Sacred Games", cat: "tvshows", genre: "Crime", lang: "Hindi", poster: "https://resizing.flixster.com/j3Pk-1QBwBZ7_pn6rGObBhi4eoY=/ems.cHJkLWVtcy1hc3NldHMvdHZzZWFzb24vUlRUVjMxNTc1OC53ZWJw", backdrop: "https://image.tmdb.org/t/p/original/5SV7aYwi8XrMl6MfFtPOHY8yRr.jpg", desc: "A link between a cop and a gangster.", rating: "8.7" },
+            { id: 303, title: "Mirzapur", cat: "tvshows", genre: "Crime", lang: "Hindi", poster: "https://images.justwatch.com/poster/98993671/s332/season-1", backdrop: "https://image.tmdb.org/t/p/original/pysDpnlR07gaW4Qe2ZcyUJ7MwvP.jpg", desc: "Guns and gangs in Mirzapur.", rating: "8.8" },
+            { id: 304, title: "The Family Man", cat: "tvshows", genre: "Thriller", lang: "Hindi", poster: "https://resizing.flixster.com/2I6bE1LjejsD0yjIvnwm_07tN_g=/ems.cHJkLWVtcy1hc3NldHMvdHZzZXJpZXMvMzg3ZGNiMzgtOTEwNy00ZTE4LWJiMDktYmJlMWJkN2U3MGQ1LmpwZw==", backdrop: "https://image.tmdb.org/t/p/original/d5NXSklXo0qyIYkgV94XAgMIckC.jpg", desc: "A middle-class man works for a special cell.", rating: "9.1" },
+            { id: 305, title: "Scam 1992", cat: "tvshows", genre: "Biography", lang: "Hindi", poster: "https://m.media-amazon.com/images/M/MV5BNGRkOTVjODgtNTBmZS00MDQ3LWE3ZjQtM2ZiNDQ3OWJkMjM2XkEyXkFqcGc@._V1_.jpg", backdrop: "https://image.tmdb.org/t/p/original/nNmJRkg8wWnRmzQDe2FwKbPIsJV.jpg", desc: "The story of Harshad Mehta.", rating: "9.5" },
+            { id: 306, title: "Karthika Deepam", cat: "tvshows", genre: "Comedy", lang: "Hindi", poster: "https://images.justwatch.com/poster/326322892/s332/season-1", backdrop: "https://image.tmdb.org/t/p/original/hXgmWPd1SuujRZ4QnKLzrj79PAw.jpg", desc: "An engineering graduate in a village.", rating: "9.2" },
+            { id: 307, title: "Brahma Mudi", cat: "tvshows", genre: "Crime", lang: "Hindi", poster: "https://img1.hotstarext.com/image/upload/f_auto/sources/r1/cms/prod/7438/1731411837438-i", backdrop: "https://image.tmdb.org/t/p/original/7H6XJ3W9r2Y4g8p4l9k0m.jpg", desc: "Aarya fights the drug world.", rating: "8.8" },
+            { id: 307, title: "Saptapadi", cat: "tvshows", genre: "Crime", lang: "Hindi", poster: "https://img1.hotstarext.com/image/upload/f_auto/sources/r1/cms/prod/2770/1758316002770-i", backdrop: "https://image.tmdb.org/t/p/original/7H6XJ3W9r2Y4g8p4l9k0m.jpg", desc: "Aarya fights the drug world.", rating: "8.8" },
+            { id: 307, title: "Gunde Ninda Gudi Gantalu", cat: "tvshows", genre: "Crime", lang: "Hindi", poster: "https://img10.hotstar.com/image/upload/f_auto,q_auto/sources/r1/cms/prod/81/1713281810081-i", backdrop: "https://image.tmdb.org/t/p/original/7H6XJ3W9r2Y4g8p4l9k0m.jpg", desc: "Aarya fights the drug world.", rating: "8.8" },
+            { id: 307, title: "Chinni", cat: "tvshows", genre: "Crime", lang: "Hindi", poster: "https://img10.hotstar.com/image/upload/f_auto,q_auto/sources/r1/cms/prod/9349/1757752699349-i", backdrop: "https://image.tmdb.org/t/p/original/7H6XJ3W9r2Y4g8p4l9k0m.jpg", desc: "Aarya fights the drug world.", rating: "8.8" },
+            
+            
+            // Using real posters as placeholders for these specific shows since original links block hotlinking
+            { id: 308, title: "BB Jodi", cat: "tvshows", genre: "Reality", lang: "Telugu", poster: "https://img10.hotstar.com/image/upload/f_auto,q_auto/sources/r1/cms/prod/1869/1766798591869-i", backdrop: "https://image.tmdb.org/t/p/original/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg", desc: "The ultimate Jodi reality show.", rating: "8.0" },
+            { id: 309, title: "Cooku with Jathiratnalu", cat: "tvshows", genre: "Drama", lang: "Telugu", poster: "https://img1.hotstarext.com/image/upload/f_auto/sources/r1/cms/prod/4389/1757145764389-i", backdrop: "https://image.tmdb.org/t/p/original/5zrx3wPdTJQKFfFJAq77hKqXoE.jpg", desc: "A heartwarming family drama.", rating: "8.5" },
+            { id: 310, title: "Star Maa Parivararam", cat: "tvshows", genre: "Drama", lang: "Telugu", poster: "https://img1.hotstarext.com/image/upload/f_auto/sources/r1/cms/prod/2230/1726325402230-h", backdrop: "https://image.tmdb.org/t/p/original/pysDpnlR07gaW4Qe2ZcyUJ7MwvP.jpg", desc: "Stories of bonding and togetherness.", rating: "8.2" },
+            
+            { id: 311, title: "Pandian Stores", cat: "tvshows", genre: "Drama", lang: "Tamil", poster: "https://img1.hotstarext.com/image/upload/f_auto/sources/r1/cms/prod/6128/1706685626128-i", backdrop: "https://image.tmdb.org/t/p/original/5x1C04H6Lzq8f2aKVr77S8rF4aG.jpg", desc: "Story of a joint family.", rating: "8.2" },
+            { id: 312, title: "Criminal Justice", cat: "tvshows", genre: "Thriller", lang: "Hindi", poster: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8R-OTEDrg6U098QusxbnOprXfHKNnmWj_3Q&s", backdrop: "https://upload.wikimedia.org/wikipedia/en/thumb/4/48/Criminal_Justice_2019_poster.jpg/220px-Criminal_Justice_2019_poster.jpg", desc: "A night out changes everything.", rating: "9.1" },
+        ];
+
+        const kids = [
+            { id: 401, title: "Mickey Mouse", cat: "kids", genre: "Animation", lang: "English", poster: "https://images.justwatch.com/poster/334286383/s718/mickey-mouse-clubhouse-plus.jpg", backdrop: "https://image.tmdb.org/t/p/original/xZ2CK2OL0Ps2YLqEXQzY8WbAwj.jpg", desc: "Classic Disney fun.", rating: "Kids" },
+            { id: 402, title: "Tom and Jerry", cat: "kids", genre: "Comedy", lang: "English", poster: "https://m.media-amazon.com/images/M/MV5BMmE2MTM2NjItMTRjNy00MGIzLWJjMzAtMzE3MTUzY2Q0NmIxXkEyXkFqcGc@._V1_.jpg", backdrop: "https://image.tmdb.org/t/p/original/5t6y7u8i9o0p1a2s3d4f.jpg", desc: "The eternal cat and mouse chase.", rating: "Kids" },
+            { id: 403, title: "Chota Bheem", cat: "kids", genre: "Animation", lang: "Hindi", poster: "https://img.airtel.tv/unsafe/fit-in/1600x0/filters:format(webp)/https://xstreamcp-assets-msp.streamready.in/assets/ZEEFIVE/SERIES/694afc08dd7e9659d7b68cbd/images/LANDSCAPE_169/1920x1080list9d7a1ccf29e84802958961c3818470efcde4d696f6234beba852849134c1950c.jpg?o=production", backdrop: "https://upload.wikimedia.org/wikipedia/en/thumb/1/18/Chota_Bheem.jpg/220px-Chota_Bheem.jpg", desc: "Bheem and his friends in Dholakpur.", rating: "Kids" },
+            { id: 404, title: "Motu Patlu", cat: "kids", genre: "Comedy", lang: "Hindi", poster: "https://img10.hotstar.com/image/upload/f_auto,q_auto/sources/r1/cms/prod/2613/1733997922613-i", backdrop: "https://upload.wikimedia.org/wikipedia/en/thumb/8/83/Motu_Patlu.jpg/220px-Motu_Patlu.jpg", desc: "Adventures of two friends.", rating: "Kids" },
+            { id: 405, title: "Doraemon", cat: "kids", genre: "Sci-Fi", lang: "Hindi", poster: "https://img1.hotstarext.com/image/upload/f_auto/sources/r1/cms/prod/8841/1308841-h-24af483e154f", backdrop: "https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Doraemon_character.png/220px-Doraemon_character.png", desc: "A robot cat from the future.", rating: "Kids" },
+            { id: 406, title: "Pokemon", cat: "kids", genre: "Adventure", lang: "English", poster: "https://img10.hotstar.com/image/upload/f_auto,q_auto/sources/r1/cms/prod/3562/1734085053562-i", backdrop: "https://image.tmdb.org/t/p/original/uDgy6hyPd82kOHh6I95FLtLnj6p.jpg", desc: "Gotta catch 'em all.", rating: "Kids" },
+            { id: 411, title: "Avengers", cat: "kids", genre: "Action", lang: "English", poster: "https://img10.hotstar.com/image/upload/f_auto,q_auto/sources/r1/cms/prod/5131/795131-i", backdrop: "https://image.tmdb.org/t/p/original/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg", desc: "Earth's mightiest heroes.", rating: "Kids" },
+            { id: 412, title: "Spider-Man", cat: "kids", genre: "Action", lang: "English", poster: "https://img1.hotstarext.com/image/upload/f_auto/sources/r1/cms/prod/3667/1738159253667-i", backdrop: "https://image.tmdb.org/t/p/original/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg", desc: "Your friendly neighborhood hero.", rating: "Kids" },
+            { id: 413, title: "Frozen", cat: "kids", genre: "Animation", lang: "English", poster: "https://img10.hotstar.com/image/upload/f_auto,q_auto/sources/r1/cms/prod/9165/1549165-i-182cd14fa49c", backdrop: "https://image.tmdb.org/t/p/original/rqeK3d3d3d3d3d3d3d3d3d3d.jpg", desc: "Anna and Elsa's adventure.", rating: "Kids" },
+            { id: 414, title: "Moana", cat: "kids", genre: "Adventure", lang: "English", poster: "https://images.justwatch.com/poster/252769591/s718/moana.jpg", backdrop: "https://image.tmdb.org/t/p/original/5b2p5p5p5p5p5p5p5p5p5p.jpg", desc: "A voyage across the sea.", rating: "Kids" },
+            { id: 415, title: "Lion King", cat: "kids", genre: "Animation", lang: "English", poster: "https://images.justwatch.com/poster/29885588/s718/the-lion-king.jpg", backdrop: "https://image.tmdb.org/t/p/original/sKCr78MXSLixwmZ8DyJLrpMsd15.jpg", desc: "The story of Simba.", rating: "Kids" },
+            { id: 416, title: "Toy Story", cat: "kids", genre: "Animation", lang: "English", poster: "https://img.airtel.tv/unsafe/fit-in/1600x0/filters:format(webp)/https://xstreamcp-assets-msp.streamready.in/assets/HOTSTAR_DTH/MOVIE/690dea734d854e0e76005257/images/LANDSCAPE_169/675568-h?o=production", backdrop: "https://image.tmdb.org/t/p/original/uDgy6hyPd82kOHh6I95FLtLnj6p.jpg", desc: "Toys come to life.", rating: "Kids" },
+            { id: 417, title: "Cars", cat: "kids", genre: "Animation", lang: "English", poster: "https://img.airtel.tv/unsafe/fit-in/500x0/filters:format(webp)/https://xstreamcp-assets-msp.streamready.in/assets/HOTSTAR_DTH/MOVIE/690de59c446c811482b03773/images/PORTRAIT/674520-v?o=production", backdrop: "https://image.tmdb.org/t/p/original/5SV7aYwi8XrMl6MfFtPOHY8yRr.jpg", desc: "Lightning McQueen's journey.", rating: "Kids" },
+            { id: 418, title: "Ben 10", cat: "kids", genre: "Action", lang: "English", poster: "https://images.justwatch.com/poster/36520781/s718/season-1.jpg", backdrop: "https://image.tmdb.org/t/p/original/reEMJA1uzscCbkpeRJeTT2bjqUp.jpg", desc: "A boy with an alien watch.", rating: "Kids" },
+        ];
+
+        const allContent = [...movies, ...sports, ...tvshows, ...kids];
+
+        // --- HERO SLIDER DATA (Top Featured Movies) ---
+        const heroData = [movies[0], movies[2], movies[5], movies[8], movies[14]]; // RRR, Jawan, KGF, Sita Ramam, Baahubali
+        let currentSlideIndex = 0;
+        const heroSection = document.getElementById('heroSection');
+        const mainContainer = document.getElementById('mainContainer');
+        const modal = document.getElementById('videoModal');
+        const searchInput = document.getElementById('searchInput');
+        const globalLangFilter = document.getElementById('globalLangFilter');
+
+        function init() {
+            renderHeroSlides();
+            startSlider();
+            renderContentSections(allContent);
+            setupSearch();
+        }
+        function renderHero() {
+  const heroItem = movies[0];
+
+  heroSection.style.backgroundImage =
+    `url(${heroItem.backdrop || 'https://picsum.photos/1920/1080'})`;
+
+  heroSection.innerHTML = `
+    <div class="hero-content">
+      <h1 class="hero-title">${heroItem.title}</h1>
+      <div class="hero-meta">
+        <span class="rating">${heroItem.rating}</span>
+        <span class="badge">${heroItem.genre}</span>
+        <span class="badge">${heroItem.lang}</span>
+      </div>
+      <p class="hero-desc">${heroItem.desc}</p>
+      <button class="btn-primary" onclick="openModal(${heroItem.id})">
+        ▶ Watch Now
+      </button>
+    </div>
+  `;
+}
+
+
+        /* --- SLIDER LOGIC --- */
+        function renderHeroSlides() {
+            const controls = heroSection.querySelector('.slider-controls');
+            heroSection.innerHTML = '';
+            heroSection.appendChild(controls);
+
+            heroData.forEach((item, index) => {
+                const slide = document.createElement('div');
+                slide.className = `hero-slide ${index === 0 ? 'active' : ''}`;
+                const bgImage = item.backdrop || item.poster;
+                slide.style.backgroundImage = `url('${bgImage}')`;
+                
+                slide.innerHTML = `
+                    <div class="hero-content">
+                        <h1 class="hero-title">${item.title}</h1>
+                        <div class="hero-meta">
+                            <span class="rating">${item.rating} Rating</span>
+                            <span class="badge">${item.genre}</span>
+                            <span class="badge">${item.lang}</span>
+                        </div>
+                        <p class="hero-desc">${item.desc}</p>
+                        <button class="btn-primary" onclick="openModal(${item.id})">
+                            <svg width="50" height="50" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                            Watch Now
+                        </button>
+                    </div>
+                `;
+                heroSection.insertBefore(slide, controls);
+            });
+        }
+
+        function showSlide(index) {
+            const slides = document.querySelectorAll('.hero-slide');
+            slides.forEach(slide => slide.classList.remove('active'));
+            
+            if (index >= slides.length) currentSlideIndex = 0;
+            else if (index < 0) currentSlideIndex = slides.length - 1;
+            else currentSlideIndex = index;
+
+            slides[currentSlideIndex].classList.add('active');
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlideIndex + direction);
+        }
+
+        function startSlider() {
+            setInterval(() => { changeSlide(1); }, 5000);
+        }
+
+        function renderContentSections(data) {
+            mainContainer.innerHTML = '';
+            if(data.length === 0) { mainContainer.innerHTML = '<div style="padding:50px; text-align:center;">No results found.</div>'; return; }
+
+            const categories = [
+                { key: 'movies', title: 'Latest Movies' },
+                { key: 'sports', title: 'Live Sports' },
+                { key: 'tvshows', title: 'Popular Serials' },
+                { key: 'kids', title: 'Kids Special' }
+            ];
+
+            categories.forEach(cat => {
+                const items = data.filter(item => item.cat === cat.key);
+                if (items.length > 0) {
+                    const section = document.createElement('div');
+                    section.className = 'section-container';
+                    section.id = cat.key;
+                    
+                    let cardsHtml = items.map(item => `
+                        <div class="card" onclick="openModal(${item.id})">
+                            <img src="${item.poster}" alt="${item.title}" class="card-poster" onerror="this.src='${FALLBACK_IMAGE}'">
+                            <div class="card-info">
+                                <h3 class="card-title">${item.title}</h3>
+                                <div class="card-meta">
+                                    <span class="lang-tag">${item.lang}</span>
+                                    <span class="rating">${item.rating}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    section.innerHTML = `<h2 class="section-title">${cat.title}</h2><div class="content-grid">${cardsHtml}</div>`;
+                    mainContainer.appendChild(section);
+                }
+            });
+        }
+
+        window.openModal = function(id) {
+            const item = allContent.find(i => i.id === id);
+            if (!item) return;
+            
+            const bgImage = item.backdrop || item.poster;
+            document.getElementById('modalBackdrop').style.backgroundImage = `url('${bgImage}')`;
+
+            document.getElementById('modalTitle').innerText = item.title;
+            document.getElementById('modalDesc').innerText = item.desc;
+            document.getElementById('modalGenre').innerText = item.genre;
+            document.getElementById('modalRating').innerText = item.rating;
+            document.getElementById('modalLang').innerText = item.lang;
+            
+            const videoContainer = document.getElementById('videoContainer');
+            videoContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`; 
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeModal = function() {
+            modal.classList.remove('active');
+            document.getElementById('videoContainer').innerHTML = '';
+            document.getElementById('modalBackdrop').style.backgroundImage = 'none';
+            document.body.style.overflow = 'auto';
+        };
+
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+        window.filterCategory = function(category) {
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+            event.target.classList.add('active');
+            if (category === 'all') { renderContentSections(allContent); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+            const filtered = allContent.filter(item => item.cat === category);
+            renderContentSections(filtered);
+            mainContainer.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.filterByLanguage = function(lang) {
+            if (lang === 'All') {
+                renderContentSections(allContent);
+            } else {
+                const filtered = allContent.filter(item => item.lang === lang);
+                renderContentSections(filtered);
+            }
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+        };
+
+        function setupSearch() {
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = allContent.filter(item => 
+                    item.title.toLowerCase().includes(term) || 
+                    item.genre.toLowerCase().includes(term) ||
+                    item.lang.toLowerCase().includes(term)
+                );
+                renderContentSections(filtered);
+                if(term.length > 0) mainContainer.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
